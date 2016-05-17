@@ -1,21 +1,25 @@
-history = []
-historySize = 300
-updateClosure = null
-cm = null
-window.min = 0
-window.max = 0
-PI = Math.PI
+_history = []
+_historySize = 300
+_updateClosure = null
+_cm = null
+@_min = 0
+@_max = 0
+@log = (x)-> console.log x; return x
+
 TAU = Math.PI * 2
-# window.x = 0
+# @x = 0
 
 examples =
-  silly: "c = Math.cos(time)\np = Math.pow(c, 2)\nMath.sin(p * TAU)"
-  sin: "Math.sin(time * TAU)"
-  square: "Math.round(time * 5) % 2"
-  triangle: "Math.abs((time % 2) - 1)"
-  random: "Math.random()"
-  state: "window.x ?= 0\nif (window.x < 0.01)\n\twindow.x = 1\nelse\n\twindow.x *= 0.9\n1 - window.x"
-  clear: ""
+  sin: "frequency = 1 # Cycles per second\nMath.sin(time * frequency * TAU)"
+  saw: "time % 1\n# The '1' isn't cycles-per-second — what is it?\n# When you change the mod, what happens to the max? Why?\n# What can you do to adjust the mod while keeping the output range between 0 and 1?"
+  square: "Math.round(time % 1)\n# The '1' isn't cycles-per-second OR seconds-per-cycle — what is it?\n# When you change the mod, what happens to the rhythm?\n# What can you do to make a more uniform rhythm?"
+  triangle: "Math.abs((time % 1 * 2) - 1)\n# This one is more complex. There's a simpler version with half the frequency:\n# Math.abs((time % 2) - 1)"
+  silly: "c = Math.cos(time)\np = Math.pow(c, 3)\nMath.sin(p * TAU)\n# Playing with simple trig and pow can produce some fun results\n# What happens if you make the '3' a negative, or a decimal?\n# Watch the 'value' in the chart below"
+  chaotic: "# Emergent complexity, much?\nc = Math.cos(time)\np = Math.pow(c, Math.round(2 * time % 3))\nMath.sin(p * TAU)"
+  state: "# To put a variable on the window, use the @ sign\n# You should initialize your variables with ?= to avoid null/NaN issues\n@x ?= 0\nif (@x < 0.01)\n\t@x = 1\nelse\n\t@x *= 0.9\n@x"
+  random: "Math.random() # Yes, you can access standard functions"
+  dT: "dT # Try this in Chrome VS Safari VS IE"
+  log: "log(dT) # This is a special pass-through logging function — check your browser inspector!"
 
 
 scale = (input, inputMin, inputMax, outputMin, outputMax)->
@@ -30,12 +34,12 @@ scale = (input, inputMin, inputMax, outputMin, outputMax)->
 
 compileSource = (editor)->
   source = editor.getValue()
-  window.localStorage["source"] = source
+  @localStorage["source"] = source
   
   results = $('#repl_results')
-  window.compiledJS = ''
+  @compiledJS = ''
   try
-    window.compiledJS = CoffeeScript.compile source, bare: on
+    @compiledJS = CoffeeScript.compile source, bare: on
     results.text("")
   catch {location, message}
     if location?
@@ -57,50 +61,58 @@ ready ()->
     "Shift-Tab": false
     "Cmd-Enter": ()->
       render(true)
-  cm = CodeMirror.fromTextArea $("textarea")[0], mode: 'coffeescript'
-  cm.on "changes", (editor, change)->
+  _cm = CodeMirror.fromTextArea $("textarea")[0], mode: 'coffeescript'
+  _cm.on "changes", (editor, change)->
     compileSource(editor)
   
-  $("button").click (e)->
-    cm.setValue(examples[$(e.target).attr("wtf-type")])
-    compileSource(cm)
+  $("button[wtf-type]").click (e)->
+    _history = []
+    _cm.setValue(examples[$(e.target).attr("wtf-type")])
+    compileSource(_cm)
   
-  if window.localStorage["source"]?
-    cm.setValue(window.localStorage["source"])
+  if @localStorage["source"]?
+    _cm.setValue(@localStorage["source"])
   else
-    cm.setValue(examples.silly)
-  compileSource(cm)
+    _cm.setValue(examples.silly)
+  compileSource(_cm)
   
-  updateClosure = (t)-> update(canvas, t)
+  _updateClosure = (t)-> update(canvas, t)
   firstTick = (t)->
-    window.time = t/1000
-    requestAnimationFrame updateClosure
+    @time = t/1000
+    requestAnimationFrame _updateClosure
   requestAnimationFrame firstTick
+
 
 
 
 update = (canvas, t)->
   
-  window.dT = t/1000 - window.time
-  window.time = t/1000
-  
-  for c in $("table tr [value]")
-    e = $(c)
-    v = e.attr("value")
-    e.text Math.round(window[v] * 1000)/1000
+  @dT = t/1000 - @time
+  @time = t/1000
   
   try
-    window.value = eval window.compiledJS
-    if window.value?
-      history.unshift window.value
+    @value = eval @compiledJS
+    if @value?
+      _history.unshift @value
+      _history.pop() if _history.length > _historySize
+    
+      render(canvas)
       
-      history.pop() if history.length > historySize
+      for c in $("table tr [wtf-chart]")
+        e = $(c)
+        n = e.attr("wtf-chart")
+        v = @[n]
+        v = @["_#{n}"] unless v?
+        e.text Math.round(v * 1000)/1000
   
-    render(canvas)
-  requestAnimationFrame updateClosure
+  requestAnimationFrame _updateClosure
+
+
 
 
 render = (canvas)->
+  return unless _history.length > 0
+  
   context = canvas.getContext "2d"
   
   # Just do everything at 2x so that we're good for most retina displays (hard to detect)
@@ -112,16 +124,16 @@ render = (canvas)->
   
   context.beginPath()
   context.lineWidth = 2
-
-  window.min = 0
-  window.max = 0
-  for v, i in history
-    window.max = v if v > window.max
-    window.min = v if v < window.min
   
-  for v, i in history
-    x = i/(historySize-1) * width
-    y = scale(v, window.min, window.max, height, 0)
+  @_min = Infinity
+  @_max = -Infinity
+  for v, i in _history
+    @_max = v if v > @_max
+    @_min = v if v < @_min
+  
+  for v, i in _history
+    x = i/(_historySize-1) * width
+    y = scale(v, @_min, @_max, height, 0)
 
     if i == 0
       context.arc(x, y, 6, 0, TAU)

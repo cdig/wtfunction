@@ -1,30 +1,36 @@
 (function() {
-  var PI, TAU, cm, compileSource, examples, history, historySize, render, scale, update, updateClosure;
+  var TAU, _cm, _history, _historySize, _updateClosure, compileSource, examples, render, scale, update;
 
-  history = [];
+  _history = [];
 
-  historySize = 300;
+  _historySize = 300;
 
-  updateClosure = null;
+  _updateClosure = null;
 
-  cm = null;
+  _cm = null;
 
-  window.min = 0;
+  this._min = 0;
 
-  window.max = 0;
+  this._max = 0;
 
-  PI = Math.PI;
+  this.log = function(x) {
+    console.log(x);
+    return x;
+  };
 
   TAU = Math.PI * 2;
 
   examples = {
-    silly: "c = Math.cos(time)\np = Math.pow(c, 2)\nMath.sin(p * TAU)",
-    sin: "Math.sin(time * TAU)",
-    square: "Math.round(time * 5) % 2",
-    triangle: "Math.abs((time % 2) - 1)",
-    random: "Math.random()",
-    state: "window.x ?= 0\nif (window.x < 0.01)\n\twindow.x = 1\nelse\n\twindow.x *= 0.9\n1 - window.x",
-    clear: ""
+    sin: "frequency = 1 # Cycles per second\nMath.sin(time * frequency * TAU)",
+    saw: "time % 1\n# The '1' isn't cycles-per-second — what is it?\n# When you change the mod, what happens to the max? Why?\n# What can you do to adjust the mod while keeping the output range between 0 and 1?",
+    square: "Math.round(time % 1)\n# The '1' isn't cycles-per-second OR seconds-per-cycle — what is it?\n# When you change the mod, what happens to the rhythm?\n# What can you do to make a more uniform rhythm?",
+    triangle: "Math.abs((time % 1 * 2) - 1)\n# This one is more complex. There's a simpler version with half the frequency:\n# Math.abs((time % 2) - 1)",
+    silly: "c = Math.cos(time)\np = Math.pow(c, 3)\nMath.sin(p * TAU)\n# Playing with simple trig and pow can produce some fun results\n# What happens if you make the '3' a negative, or a decimal?\n# Watch the 'value' in the chart below",
+    chaotic: "# Emergent complexity, much?\nc = Math.cos(time)\np = Math.pow(c, Math.round(2 * time % 3))\nMath.sin(p * TAU)",
+    state: "# To put a variable on the window, use the @ sign\n# You should initialize your variables with ?= to avoid null/NaN issues\n@x ?= 0\nif (@x < 0.01)\n\t@x = 1\nelse\n\t@x *= 0.9\n@x",
+    random: "Math.random() # Yes, you can access standard functions",
+    dT: "dT # Try this in Chrome VS Safari VS IE",
+    log: "log(dT) # This is a special pass-through logging function — check your browser inspector!"
   };
 
   scale = function(input, inputMin, inputMax, outputMin, outputMax) {
@@ -42,11 +48,11 @@
   compileSource = function(editor) {
     var error, location, message, results, source;
     source = editor.getValue();
-    window.localStorage["source"] = source;
+    this.localStorage["source"] = source;
     results = $('#repl_results');
-    window.compiledJS = '';
+    this.compiledJS = '';
     try {
-      window.compiledJS = CoffeeScript.compile(source, {
+      this.compiledJS = CoffeeScript.compile(source, {
         bare: true
       });
       return results.text("");
@@ -74,58 +80,66 @@
         return render(true);
       }
     };
-    cm = CodeMirror.fromTextArea($("textarea")[0], {
+    _cm = CodeMirror.fromTextArea($("textarea")[0], {
       mode: 'coffeescript'
     });
-    cm.on("changes", function(editor, change) {
+    _cm.on("changes", function(editor, change) {
       return compileSource(editor);
     });
-    $("button").click(function(e) {
-      cm.setValue(examples[$(e.target).attr("wtf-type")]);
-      return compileSource(cm);
+    $("button[wtf-type]").click(function(e) {
+      _history = [];
+      _cm.setValue(examples[$(e.target).attr("wtf-type")]);
+      return compileSource(_cm);
     });
-    if (window.localStorage["source"] != null) {
-      cm.setValue(window.localStorage["source"]);
+    if (this.localStorage["source"] != null) {
+      _cm.setValue(this.localStorage["source"]);
     } else {
-      cm.setValue(examples.silly);
+      _cm.setValue(examples.silly);
     }
-    compileSource(cm);
-    updateClosure = function(t) {
+    compileSource(_cm);
+    _updateClosure = function(t) {
       return update(canvas, t);
     };
     firstTick = function(t) {
-      window.time = t / 1000;
-      return requestAnimationFrame(updateClosure);
+      this.time = t / 1000;
+      return requestAnimationFrame(_updateClosure);
     };
     return requestAnimationFrame(firstTick);
   });
 
   update = function(canvas, t) {
-    var c, e, j, len, ref, v;
-    window.dT = t / 1000 - window.time;
-    window.time = t / 1000;
-    ref = $("table tr [value]");
-    for (j = 0, len = ref.length; j < len; j++) {
-      c = ref[j];
-      e = $(c);
-      v = e.attr("value");
-      e.text(Math.round(window[v] * 1000) / 1000);
-    }
+    var c, e, j, len, n, ref, v;
+    this.dT = t / 1000 - this.time;
+    this.time = t / 1000;
     try {
-      window.value = eval(window.compiledJS);
-      if (window.value != null) {
-        history.unshift(window.value);
-        if (history.length > historySize) {
-          history.pop();
+      this.value = eval(this.compiledJS);
+      if (this.value != null) {
+        _history.unshift(this.value);
+        if (_history.length > _historySize) {
+          _history.pop();
+        }
+        render(canvas);
+        ref = $("table tr [wtf-chart]");
+        for (j = 0, len = ref.length; j < len; j++) {
+          c = ref[j];
+          e = $(c);
+          n = e.attr("wtf-chart");
+          v = this[n];
+          if (v == null) {
+            v = this["_" + n];
+          }
+          e.text(Math.round(v * 1000) / 1000);
         }
       }
-      render(canvas);
     } catch (undefined) {}
-    return requestAnimationFrame(updateClosure);
+    return requestAnimationFrame(_updateClosure);
   };
 
   render = function(canvas) {
     var context, cx, cy, height, i, j, k, len, len1, v, width, x, y;
+    if (!(_history.length > 0)) {
+      return;
+    }
     context = canvas.getContext("2d");
     width = canvas.width = parseInt(canvas.offsetWidth);
     height = canvas.height = parseInt(canvas.offsetHeight);
@@ -133,21 +147,21 @@
     cy = height / 2;
     context.beginPath();
     context.lineWidth = 2;
-    window.min = 0;
-    window.max = 0;
-    for (i = j = 0, len = history.length; j < len; i = ++j) {
-      v = history[i];
-      if (v > window.max) {
-        window.max = v;
+    this._min = Infinity;
+    this._max = -Infinity;
+    for (i = j = 0, len = _history.length; j < len; i = ++j) {
+      v = _history[i];
+      if (v > this._max) {
+        this._max = v;
       }
-      if (v < window.min) {
-        window.min = v;
+      if (v < this._min) {
+        this._min = v;
       }
     }
-    for (i = k = 0, len1 = history.length; k < len1; i = ++k) {
-      v = history[i];
-      x = i / (historySize - 1) * width;
-      y = scale(v, window.min, window.max, height, 0);
+    for (i = k = 0, len1 = _history.length; k < len1; i = ++k) {
+      v = _history[i];
+      x = i / (_historySize - 1) * width;
+      y = scale(v, this._min, this._max, height, 0);
       if (i === 0) {
         context.arc(x, y, 6, 0, TAU);
         context.fill();

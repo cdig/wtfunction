@@ -37,13 +37,16 @@ window.ready = function(fn) {
 <body>
   <h1>WTFunction</h1>
   <p>Examples:
-  <button wtf-type="silly">Silly Wave</button>
   <button wtf-type="sin">Sin Wave</button>
+  <button wtf-type="saw">Sawtooth Wave</button>
   <button wtf-type="square">Square Wave</button>
   <button wtf-type="triangle">Triangle Wave</button>
-  <button wtf-type="random">Random</button>
+  <button wtf-type="silly">Silly Wave</button>
+  <button wtf-type="chaotic">Chaos Wave</button>
   <button wtf-type="state">Saving State</button>
-  <button wtf-type="clear">Clear</button>
+  <button wtf-type="random">Random</button>
+  <button wtf-type="dT">dT</button>
+  <button wtf-type="log">log</button>
   </p>
 
   <canvas></canvas>
@@ -51,16 +54,15 @@ window.ready = function(fn) {
   <textarea id="repl_source" rows="100" spellcheck="false"></textarea>
   <pre id="repl_results"></pre>
 
-  <p>Write any valid CoffeeScript in the above text area. You have access to two global variables: <em>time</em> and <em>dT</em>. Every frame, we will execute the code. The last line of your code should be a numeric value. The graph will draw that value over time. We will re-scale the graph to fit the values you provide, shown below as <em>max</em> and <em>min</em>. If you want to store a variable from one frame to the next, please attach it to window (see the "Saving State" example).</p>
-
-  <h2>Info</h2>
   <table>
-    <tr><td>value</td><td value="value"></td></tr>
-    <tr><td>max</td><td value="max"></td></tr>
-    <tr><td>min</td><td value="min"></td></tr>
-    <tr><td>time</td><td value="time"></td></tr>
-    <tr><td>dT</td><td value="dT"></td></tr>
+    <tr><td>dT</td><td wtf-chart="dT"></td></tr>
+    <tr><td>time</td><td wtf-chart="time"></td></tr>
+    <tr><td>value</td><td wtf-chart="value"></td></tr>
+    <tr><td>max</td><td wtf-chart="max"></td></tr>
+    <tr><td>min</td><td wtf-chart="min"></td></tr>
   </table>
+
+  <p>You can write (almost) any valid CoffeeScript in the text area. You have access to global variables for <em>time</em> and <em>dT</em>, as well as a global constant <em>TAU</em>. Every frame, we will execute the code. The last line of your code should be a numeric value. The graph will draw that value over time. We will re-scale the graph on the fly, and show the current range of the graph as <em>max</em> and <em>min</em> in the chart above. If you want to store a variable from one frame to the next, please attach it to window (see the "Saving State" example). Undo/Redo keyboard shortcuts work when you have keyboard focus on the text area.</p>
 
   <footer>
     <p>
