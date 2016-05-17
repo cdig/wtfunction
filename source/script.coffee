@@ -35,7 +35,7 @@ scale = (input, inputMin, inputMax, outputMin, outputMax)->
 compileSource = (editor)->
   source = editor.getValue()
   @localStorage["source"] = source
-  
+  console.clear()
   results = $('#repl_results')
   @compiledJS = ''
   try
@@ -122,24 +122,30 @@ render = (canvas)->
   cx = width/2
   cy = height/2
   
-  context.beginPath()
-  context.lineWidth = 2
-  
   @_min = Infinity
   @_max = -Infinity
   for v, i in _history
     @_max = v if v > @_max
     @_min = v if v < @_min
+
   
+  context.beginPath()
+  context.strokeStyle = "#CCC"
+  y = scale(0, @_min, @_max, height, 0)
+  context.moveTo(0, y);
+  context.lineTo(width, y);
+  context.stroke()
+
+  context.beginPath()
+  context.lineWidth = 2
+  context.strokeStyle = "black"
   for v, i in _history
     x = i/(_historySize-1) * width
     y = scale(v, @_min, @_max, height, 0)
-
     if i == 0
       context.arc(x, y, 6, 0, TAU)
       context.fill()
       context.moveTo(x, y);
     else
       context.lineTo(x, y);
-  
   context.stroke()

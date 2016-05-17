@@ -49,6 +49,7 @@
     var error, location, message, results, source;
     source = editor.getValue();
     this.localStorage["source"] = source;
+    console.clear();
     results = $('#repl_results');
     this.compiledJS = '';
     try {
@@ -145,8 +146,6 @@
     height = canvas.height = parseInt(canvas.offsetHeight);
     cx = width / 2;
     cy = height / 2;
-    context.beginPath();
-    context.lineWidth = 2;
     this._min = Infinity;
     this._max = -Infinity;
     for (i = j = 0, len = _history.length; j < len; i = ++j) {
@@ -158,6 +157,15 @@
         this._min = v;
       }
     }
+    context.beginPath();
+    context.strokeStyle = "#CCC";
+    y = scale(0, this._min, this._max, height, 0);
+    context.moveTo(0, y);
+    context.lineTo(width, y);
+    context.stroke();
+    context.beginPath();
+    context.lineWidth = 2;
+    context.strokeStyle = "black";
     for (i = k = 0, len1 = _history.length; k < len1; i = ++k) {
       v = _history[i];
       x = i / (_historySize - 1) * width;
