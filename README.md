@@ -1,6 +1,6 @@
 # WTFunction
 
-A repl for animations.
+A repl for animations. [http://wtfunction.surge.sh](http://wtfunction.surge.sh)
 
 ## License
 
