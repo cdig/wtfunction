@@ -2,8 +2,8 @@ history = []
 historySize = 300
 updateClosure = null
 cm = null
-window.min = -1
-window.max = 1
+window.min = 0
+window.max = 0
 PI = Math.PI
 TAU = Math.PI * 2
 # window.x = 0
@@ -14,8 +14,7 @@ examples =
   square: "Math.round(time * 5) % 2"
   triangle: "Math.abs((time % 2) - 1)"
   jitter: "Math.random()"
-  state: "window.x ?= 0\nif (window.x < 0.01)\n\twindow.x = 1\nelse\n\twindow.x *= 0.9\nwindow.x"
-  # state: "window.x ?= 0; window.x++"
+  state: "window.x ?= 0\nif (window.x < 0.01)\n\twindow.x = 1\nelse\n\twindow.x *= 0.9\n1 - window.x"
   clear: ""
 
 
@@ -46,6 +45,7 @@ compileSource = (editor)->
 
 ready ()->
   canvas = document.querySelector "canvas"
+  context = canvas.getContext "2d"
   
   # Configure CM
   CodeMirror.defaults.lineNumbers = true
@@ -93,8 +93,6 @@ update = (canvas, t)->
     window.value = eval window.compiledJS
     if window.value?
       history.unshift window.value
-      window.max = window.value if window.value > window.max
-      window.min = window.value if window.value < window.min
       
       history.pop() if history.length > historySize
   
@@ -114,14 +112,20 @@ render = (canvas)->
   
   context.beginPath()
   context.lineWidth = 2
-  context.stokeStyle = "black"
+
+  window.min = 0
+  window.max = 0
+  for v, i in history
+    window.max = v if v > window.max
+    window.min = v if v < window.min
   
   for v, i in history
     x = i/(historySize-1) * width
     y = scale(v, window.min, window.max, height, 0)
 
     if i == 0
-      context.arc(x, y, 5, 0, TAU)
+      context.arc(x, y, 6, 0, TAU)
+      context.fill()
       context.moveTo(x, y);
     else
       context.lineTo(x, y);

@@ -9,9 +9,9 @@
 
   cm = null;
 
-  window.min = -1;
+  window.min = 0;
 
-  window.max = 1;
+  window.max = 0;
 
   PI = Math.PI;
 
@@ -23,7 +23,7 @@
     square: "Math.round(time * 5) % 2",
     triangle: "Math.abs((time % 2) - 1)",
     jitter: "Math.random()",
-    state: "window.x ?= 0\nif (window.x < 0.01)\n\twindow.x = 1\nelse\n\twindow.x *= 0.9\nwindow.x",
+    state: "window.x ?= 0\nif (window.x < 0.01)\n\twindow.x = 1\nelse\n\twindow.x *= 0.9\n1 - window.x",
     clear: ""
   };
 
@@ -60,8 +60,9 @@
   };
 
   ready(function() {
-    var canvas, firstTick;
+    var canvas, context, firstTick;
     canvas = document.querySelector("canvas");
+    context = canvas.getContext("2d");
     CodeMirror.defaults.lineNumbers = true;
     CodeMirror.defaults.tabSize = 2;
     CodeMirror.defaults.historyEventDelay = 200;
@@ -114,12 +115,6 @@
       window.value = eval(window.compiledJS);
       if (window.value != null) {
         history.unshift(window.value);
-        if (window.value > window.max) {
-          window.max = window.value;
-        }
-        if (window.value < window.min) {
-          window.min = window.value;
-        }
         if (history.length > historySize) {
           history.pop();
         }
@@ -130,7 +125,7 @@
   };
 
   render = function(canvas) {
-    var context, cx, cy, height, i, j, len, v, width, x, y;
+    var context, cx, cy, height, i, j, k, len, len1, v, width, x, y;
     context = canvas.getContext("2d");
     width = canvas.width = parseInt(canvas.offsetWidth);
     height = canvas.height = parseInt(canvas.offsetHeight);
@@ -138,13 +133,24 @@
     cy = height / 2;
     context.beginPath();
     context.lineWidth = 2;
-    context.stokeStyle = "black";
+    window.min = 0;
+    window.max = 0;
     for (i = j = 0, len = history.length; j < len; i = ++j) {
+      v = history[i];
+      if (v > window.max) {
+        window.max = v;
+      }
+      if (v < window.min) {
+        window.min = v;
+      }
+    }
+    for (i = k = 0, len1 = history.length; k < len1; i = ++k) {
       v = history[i];
       x = i / (historySize - 1) * width;
       y = scale(v, window.min, window.max, height, 0);
       if (i === 0) {
-        context.arc(x, y, 5, 0, TAU);
+        context.arc(x, y, 6, 0, TAU);
+        context.fill();
         context.moveTo(x, y);
       } else {
         context.lineTo(x, y);
