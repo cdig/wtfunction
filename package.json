@@ -27,6 +27,6 @@
     "gulp-using": "0.0.x",
     "run-sequence": "^1.1.4"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true
 }
