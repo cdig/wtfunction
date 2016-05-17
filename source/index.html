@@ -33,21 +33,26 @@ window.ready = function(fn) {
 <script defer src="/coffeescript.js"></script>
 <script defer src="/scripts.js"></script>
 </head>
+
 <body>
   <h1>WTFunction</h1>
-  <canvas></canvas>
-  <textarea id="repl_source" rows="100" spellcheck="false"></textarea>
-  <pre id="repl_results"></pre>
-  <p>Click these buttons to load some examples:
+  <p>Examples:
   <button wtf-type="silly">Silly Wave</button>
   <button wtf-type="sin">Sin Wave</button>
   <button wtf-type="square">Square Wave</button>
   <button wtf-type="triangle">Triangle Wave</button>
-  <button wtf-type="jitter">Jitter</button>
+  <button wtf-type="random">Random</button>
   <button wtf-type="state">Saving State</button>
   <button wtf-type="clear">Clear</button>
   </p>
+
+  <canvas></canvas>
+
+  <textarea id="repl_source" rows="100" spellcheck="false"></textarea>
+  <pre id="repl_results"></pre>
+
   <p>Write any valid CoffeeScript in the above text area. You have access to two global variables: <em>time</em> and <em>dT</em>. Every frame, we will execute the code. The last line of your code should be a numeric value. The graph will draw that value over time. We will re-scale the graph to fit the values you provide, shown below as <em>max</em> and <em>min</em>. If you want to store a variable from one frame to the next, please attach it to window (see the "Saving State" example).</p>
+
   <h2>Info</h2>
   <table>
     <tr><td>value</td><td value="value"></td></tr>
@@ -56,6 +61,7 @@ window.ready = function(fn) {
     <tr><td>time</td><td value="time"></td></tr>
     <tr><td>dT</td><td value="dT"></td></tr>
   </table>
+
   <footer>
     <p>
       This trash-REPL is a tire fire by <a href="https://twitter.com/spiralganglion">what's-his-face</a>.

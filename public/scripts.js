@@ -22,7 +22,7 @@
     sin: "Math.sin(time * TAU)",
     square: "Math.round(time * 5) % 2",
     triangle: "Math.abs((time % 2) - 1)",
-    jitter: "Math.random()",
+    random: "Math.random()",
     state: "window.x ?= 0\nif (window.x < 0.01)\n\twindow.x = 1\nelse\n\twindow.x *= 0.9\n1 - window.x",
     clear: ""
   };
