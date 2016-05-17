@@ -29,7 +29,7 @@
     chaotic: "# Emergent complexity, much?\nc = Math.cos(time)\np = Math.pow(c, Math.round(2 * time % 3))\nMath.sin(p * TAU)",
     state: "# To put a variable on the window, use the @ sign\n# You should initialize your variables with ?= to avoid null/NaN issues\n@x ?= 0\nif (@x < 0.01)\n\t@x = 1\nelse\n\t@x *= 0.9\n@x",
     random: "Math.random() # Yes, you can access standard functions",
-    dT: "dT # Try this in Chrome VS Safari VS IE",
+    dT: "dT # Try this in different browsers",
     log: "log(dT) # This is a special pass-through logging function — check your browser inspector!"
   };
 
