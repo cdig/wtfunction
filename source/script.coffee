@@ -73,7 +73,7 @@ ready ()->
   if @localStorage["source"]?
     _cm.setValue(@localStorage["source"])
   else
-    _cm.setValue(examples.silly)
+    _cm.setValue(examples.sin)
   compileSource(_cm)
   
   _updateClosure = (t)-> update(canvas, t)

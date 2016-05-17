@@ -94,7 +94,7 @@
     if (this.localStorage["source"] != null) {
       _cm.setValue(this.localStorage["source"]);
     } else {
-      _cm.setValue(examples.silly);
+      _cm.setValue(examples.sin);
     }
     compileSource(_cm);
     _updateClosure = function(t) {
