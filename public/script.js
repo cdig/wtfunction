@@ -20,6 +20,7 @@
 
   TAU = Math.PI * 2;
 
+  // @x = 0
   examples = {
     sin: "frequency = 1 # Cycles per second\nMath.sin(time * frequency * TAU)",
     saw: "time % 1\n# The '1' isn't cycles-per-second — what is it?\n# When you change the mod, what happens to the max? Why?\n# What can you do to adjust the mod while keeping the output range between 0 and 1?",
@@ -46,7 +47,7 @@
   };
 
   compileSource = function(editor) {
-    var error, location, message, results, source;
+    var location, message, results, source;
     source = editor.getValue();
     this.localStorage["source"] = source;
     console.clear();
@@ -58,9 +59,9 @@
       });
       return results.text("");
     } catch (error) {
-      location = error.location, message = error.message;
+      ({location, message} = error);
       if (location != null) {
-        message = "Error on line " + (location.first_line + 1) + ": " + message;
+        message = `Error on line ${location.first_line + 1}: ${message}`;
       }
       return results.text(message).addClass('error');
     }
@@ -70,10 +71,12 @@
     var canvas, context, firstTick;
     canvas = document.querySelector("canvas");
     context = canvas.getContext("2d");
+    
+    // Configure CM
     CodeMirror.defaults.lineNumbers = true;
     CodeMirror.defaults.tabSize = 2;
     CodeMirror.defaults.historyEventDelay = 200;
-    CodeMirror.defaults.viewportMargin = Infinity;
+    CodeMirror.defaults.viewportMargin = 2e308;
     CodeMirror.defaults.extraKeys = {
       Tab: false,
       "Shift-Tab": false,
@@ -127,12 +130,12 @@
           n = e.attr("wtf-chart");
           v = this[n];
           if (v == null) {
-            v = this["_" + n];
+            v = this[`_${n}`];
           }
           e.text(Math.round(v * 1000) / 1000);
         }
       }
-    } catch (undefined) {}
+    } catch (error) {}
     return requestAnimationFrame(_updateClosure);
   };
 
@@ -142,12 +145,14 @@
       return;
     }
     context = canvas.getContext("2d");
+    
+    // Just do everything at 2x so that we're good for most retina displays (hard to detect)
     width = canvas.width = parseInt(canvas.offsetWidth);
     height = canvas.height = parseInt(canvas.offsetHeight);
     cx = width / 2;
     cy = height / 2;
-    this._min = Infinity;
-    this._max = -Infinity;
+    this._min = 2e308;
+    this._max = -2e308;
     for (i = j = 0, len = _history.length; j < len; i = ++j) {
       v = _history[i];
       if (v > this._max) {
